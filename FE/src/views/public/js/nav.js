@@ -19,9 +19,30 @@ dropdownItems.forEach(function (item) {
   item.addEventListener("click", function (event) {
     event.preventDefault();
     const category = event.target.textContent;
-    if (category) {
+    console.log("category", category);
+    if (category == "애플") {
       const currentUrl = new URL(window.location.href);
-      currentUrl.searchParams.set("category", category); // encodeURIComponent로 카테고리 인코딩
+      currentUrl.searchParams.set("category", "644aa57feecee8cec114fd09"); // encodeURIComponent로 카테고리 인코딩
+      const productListUrl = `../product-list/product-list.html${currentUrl.search}`;
+      window.location.href = productListUrl;
+    } else if (category == "삼성") {
+      const currentUrl = new URL(window.location.href);
+      currentUrl.searchParams.set("category", "644aa58aeecee8cec114fd0b"); // encodeURIComponent로 카테고리 인코딩
+      const productListUrl = `../product-list/product-list.html${currentUrl.search}`;
+      window.location.href = productListUrl;
+    } else if (category == "샤오미") {
+      const currentUrl = new URL(window.location.href);
+      currentUrl.searchParams.set("category", "644aa58feecee8cec114fd0d"); // encodeURIComponent로 카테고리 인코딩
+      const productListUrl = `../product-list/product-list.html${currentUrl.search}`;
+      window.location.href = productListUrl;
+    } else if (category == "정품 스트랩") {
+      const currentUrl = new URL(window.location.href);
+      currentUrl.searchParams.set("category", "644aa59beecee8cec114fd0f"); // encodeURIComponent로 카테고리 인코딩
+      const productListUrl = `../product-list/product-list.html${currentUrl.search}`;
+      window.location.href = productListUrl;
+    } else if (category == "호환 스트랩") {
+      const currentUrl = new URL(window.location.href);
+      currentUrl.searchParams.set("category", "644aa5a1eecee8cec114fd11"); // encodeURIComponent로 카테고리 인코딩
       const productListUrl = `../product-list/product-list.html${currentUrl.search}`;
       window.location.href = productListUrl;
     }
