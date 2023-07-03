@@ -16,7 +16,6 @@
 
     <!-- custom css,js -->
     <link rel="stylesheet" href="./cart.css" />
-    <script defer type="module" src="./cart.js"></script>
 
     <!-- bootstrap -->
     <link
@@ -35,19 +34,17 @@
     <!-- Header [시작] -->
     <header>
       <div class="header-wrap">
-        <h1 class="logo">
-          <a href="">로고 이미지</a>
+        <h1 class="logo"><a href="/">로고 이미지</a>
         </h1>
         <ul class="util-link">
-          <li><button type="button" class="btn btn-link">로그인</button></li>
-          <li>
-            <button type="button" class="btn btn-link">마이페이지</button>
-          </li>
-          <li><button type="button" class="btn btn-link">회원가입</button></li>
-          <li><button type="button" class="btn btn-link">장바구니</button></li>
+          <li><a href="" class="btn btn-link" id="logout">로그아웃</a></li>
+          <li><a href="/login" class="btn btn-link" id="login">로그인</a></li>
+          <li><a href="/mypage" class="btn btn-link" id="mypage">마이페이지</a></li>
+          <li><a href="/register" class="btn btn-link" id="register">회원가입</a></li>
+          <li><a href="/cart" class="btn btn-link" id="cart">장바구니</a></li>
         </ul>
       </div>
-    </header>
+  </header>
     <!-- Header [끝] -->
 
     <!-- nav [시작] -->
@@ -174,4 +171,6 @@
     </footer>
     <!-- Footer [끝] -->
   </body>
+  <script type="module" src="../public/js/nav.js" defer></script>
+  <script defer type="module" src="./cart.js"></script>
 </html>

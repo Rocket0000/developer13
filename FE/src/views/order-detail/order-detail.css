@@ -189,8 +189,9 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    position: relative;
-    top: 980px; 
+    /* position: relative; */
+    margin-top: 30px;
+    /* top: 980px;  */
 }
 
 .order__options--option {

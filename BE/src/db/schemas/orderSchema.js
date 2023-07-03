@@ -6,8 +6,7 @@ const orderSchema = new Schema({
     ref:"Product",
   }],
   productCount:{
-    type: [Number],
-    default: 1,
+    type: [Number]
   },
   buyer:{
     type: Schema.Types.ObjectId,

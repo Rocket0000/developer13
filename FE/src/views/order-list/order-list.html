@@ -32,17 +32,15 @@
     <!-- Header [시작] -->
     <header>
         <div class="header-wrap">
-            <h1 class="logo">
-                <a href="/">    
-                    <img src="https://via.placeholder.com/150x80" alt="임시로고이미지">
-                </a>
-            </h1>
-            <ul class="util-link">
-                <li><a href="/login" class="btn btn-link">로그인</a></li>
-                <li><a href="/mypage" class="btn btn-link">마이페이지</a></li>
-                <li><a href="" class="btn btn-link">회원가입</a></li>
-                <li><a href="" class="btn btn-link">장바구니</a></li>
-            </ul>
+          <h1 class="logo"><a href="/">로고 이미지</a>
+          </h1>
+          <ul class="util-link">
+            <li><a href="" class="btn btn-link" id="logout">로그아웃</a></li>
+            <li><a href="/login" class="btn btn-link" id="login">로그인</a></li>
+            <li><a href="/mypage" class="btn btn-link" id="mypage">마이페이지</a></li>
+            <li><a href="/register" class="btn btn-link" id="register">회원가입</a></li>
+            <li><a href="/cart" class="btn btn-link" id="cart">장바구니</a></li>
+          </ul>
         </div>
     </header>
     <!-- Header [끝] -->
@@ -100,13 +98,7 @@
                     <div class="subtitle-area">
                         <h2 class="subtitle">주문/배송 정보</h2>
                     </div>
-
-                    <!-- <div class="mypage__order--none">주문내역이 없습니다</div> -->
-
-                    <!-- 주문 내역 있는 경우 -->
-
-
-
+                    <!--  -->
                 </div>
             </div>
         </div>
@@ -117,6 +109,7 @@
         <address>&copy; 엘리스 SW 4기 : 13팀 - 시계는 와!!치!!</address>
     </footer>
     <!-- Footer [끝] -->
+    <script type="module" src="../public/js/nav.js" defer></script>
+    <script type="module" src="order-list.js" defer></script>
 </body>
-<script type="module" src="order-list.js" defer></script>
 </html>

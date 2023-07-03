@@ -54,6 +54,7 @@ function parseJwt(token) {
 const token = sessionStorage.getItem("token");
 const userId = parseJwt(token).userId;
 
+
 // // 로그인 유저 id 불러오기
 Api.get("/api/mypage", userId)
   .then((res) => {
@@ -62,8 +63,8 @@ Api.get("/api/mypage", userId)
   .catch((err) => {
     alert(`문제가 발생하였습니다. 확인 후 다시 시도해 주세요: ${err.message}`);
   });
-
-let userData;
+  
+  let userData;
 async function inputOrdererInfo() {
   userData = await Api.get("/api/mypage", userId);
   deliveryName.value = userData.name || null;
@@ -82,18 +83,20 @@ async function order() {
     !deliveryAddress.value ||
     !deliveryAddress2.value ||
     !deliveryTel.value
-  ) {
-    return alert("배송지 정보를 입력해주세요.");
-  }
-
-  let buyList = JSON.parse(localStorage.getItem("cart"));
-  console.log("받아온 주문목록 입니다", buyList);
-
-  let total_amount = JSON.parse(localStorage.getItem("totalAmount"));
-  console.log("받아온 총 수량 입니다", total_amount);
-
-  let total_price = JSON.parse(localStorage.getItem("totalPrice"));
-  console.log("받아온 총 금액 입니다", total_price);
+    ) {
+      return alert("배송지 정보를 입력해주세요.");
+    }
+    
+    let buyList = JSON.parse(localStorage.getItem("cart"));
+    console.log("받아온 주문목록 입니다", buyList);
+    
+    let total_amount = JSON.parse(localStorage.getItem("totalAmount"));
+    console.log("받아온 총 수량 입니다", total_amount);
+    
+    let total_price = localStorage.getItem("totalPrice");
+    console.log("받아온 총 금액 입니다", total_price);
+    
+    
 
   const receiverName = deliveryName.value;
   const zipCode = deliveryPostcode.value;
@@ -101,8 +104,8 @@ async function order() {
   const extraAddress_2 = deliveryAddress2.value;
   const receiverPhone = deliveryTel.value;
   const listArr = JSON.parse(localStorage.getItem("cart")).map((i) => i.id);
-
-  console.log(listArr);
+  const productCount = JSON.parse(localStorage.getItem('cart')).map(item => item.count);
+  
   let finalOrderList = {
     receiverName: receiverName,
     zipCode: zipCode,
@@ -110,8 +113,9 @@ async function order() {
     extraAddress_2: extraAddress_2,
     receiverPhone: receiverPhone,
     productInfo: listArr,
+    productCount: productCount,
     totalAmount: total_amount,
-    totalPrice: total_price.id,
+    totalPrice: total_price,
     buyer: userId,
   };
 
@@ -135,3 +139,4 @@ async function order() {
 }
 
 payButton.addEventListener("click", order);
+

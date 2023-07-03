@@ -1,41 +1,22 @@
 import * as Api from "/api.js";
 
-//token역파시 하는 것
-function parseJwt (token) {
-    var base64Url = token.split('.')[1];
-    var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    var jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-    }).join(''));
-    
-    return JSON.parse(jsonPayload);
-};
 
-const token = sessionStorage.getItem('token')
-const userId = parseJwt(token).userId
+const orderId = window.location.href.split('/');
 
-Api.get('/api/admin', "orders")
+
+Api.get('/api/mypage/orders', `${orderId[5]}`)
     .then((order) => {
-        const myOrder = order.filter(item  => item['buyer']._id === userId)
-        for(let i = 0 ; i < myOrder.length; i++){
-            console.log(myOrder);
-            let orders = myOrder[i]
-            console.log(orders);
-
         const orderDetailWrap = document.getElementById("order-detail--wrap");
-        orderDetailWrap.innerHTML += renderOrderContent(orders);
+        orderDetailWrap.innerHTML += renderOrderContent(order);
 
-        const productInfo = document.getElementById(
-            "order-detail__product--info"
-        );
+        const productInfoLayout = document.getElementById("order-detail__product--info");
 
-        renderOrderProduct(orders, productInfo);
+        renderOrderProduct(order, productInfoLayout);
         
-        checkOrderShippingStatus(orders);
-        console.log("orders:::", orders);
+        checkOrderShippingStatus(order);
 
-        fillOrderEditModalInput(orders);
-    }})
+        fillOrderEditModalInput(order);
+    })
     .catch((error) => {
         alert(error);
     });
@@ -43,11 +24,26 @@ Api.get('/api/admin', "orders")
 // order-content 렌더
 function renderOrderContent(order) {
 
+    const date = new Date(order.orderDate);
+
+    const year = date.getFullYear();
+    let month = date.getMonth() + 1;
+    let day = date.getDate();
+    let hour = date.getHours();
+    let minute = date.getMinutes();
+
+    month = month >= 10 ? month : '0' + month;
+    day = day >= 10 ? day : '0' + day;
+    hour = hour >= 10 ? hour : '0' + hour;
+    minute = minute >= 10 ? minute : '0' + minute;
+
+    const orderTime = year + '-' + month + '-' + day + ' ' + hour + ':' + minute;
+
     return `
     <div class="order-detail__content card">
         <div class="order-detail__content--date">
             <div class="order-detail__content--underline">
-                <h4>주문일자: ${order.createdAt.slice(0, 10)}</h4>
+                <h4>주문일자: ${orderTime}</h4>
             </div>
         </div>
         <div class="order-detail__content--shipping">
@@ -59,7 +55,7 @@ function renderOrderContent(order) {
                     <span>></span>
                 </li>
                 <li class="nav-item">
-                    <span class="shipping-status">결제완료</span>
+                    <span class="shipping-status" id="pay-finished">결제완료</span>
                 </li>
                 <li class="nav-item">
                     <span>></span>
@@ -123,38 +119,65 @@ function renderOrderContent(order) {
             </div>
         </div>
     </div>
+    <div
+        id="order__options--wrap"
+        class="btn-group"
+        role="group"
+        aria-label="Basic example"
+    >
+        <button
+            id="order__options--edit"
+            type="button"
+            class="order__options--option btn btn-warning "
+            data-bs-toggle="modal"
+            data-bs-target="#order-edit__modal"
+        >
+            주문 정보 수정
+        </button>
+        <button
+            id="order__options--cancel"
+            type="button"
+            class="order__options--option btn btn-danger"
+        >
+            주문 취소
+        </button>
+    </div>
+</div>
     `;
 }
 
 // order-content 중 product-info 렌더
 function renderOrderProduct(order, productInfo) {
-    for (let i = 0; i < order.productList.length; i++) {
+    for(let i = 0 ; i < order['productInfo'].length; i++){
         const productItem = document.createElement("div");
+
         productItem.classList.add(
             "product-info__product--item"
         );
         productInfo.appendChild(productItem);
 
         const productItemLink = document.createElement("a");
+
         productItemLink.classList.add(
             "product-info__product--link"
         );
-        productItemLink.href = `/products/${order.productList[i]._id}`;
+
+        productItemLink.href = `/product-detail/${order.productInfo[i]._id}`;
         productItem.appendChild(productItemLink);
-    
+
         const productItemSmallImageURL = document.createElement("img");
         productItemSmallImageURL.classList.add(
             "product-info__content"
         );
         productItemSmallImageURL.setAttribute("id", "order-detail__product--image");
-        productItemSmallImageURL.src = order.productList[i].smallImageURL;
+        productItemSmallImageURL.src = order.productInfo[i].smallImageURL;
         productItemLink.appendChild(productItemSmallImageURL);
 
         const productItemName = document.createElement("div");
         productItemName.classList.add(
             "product-info__content"
         );
-        productItemName.innerText = `${order.productList[i].name} ${order.countList[i]} 개`;
+        productItemName.innerText = `${order.productInfo[i].name} ${order.productCount[i]} 개`;
         productItemLink.appendChild(productItemName);
 
         const productItemPrice = document.createElement("div");
@@ -162,20 +185,26 @@ function renderOrderProduct(order, productInfo) {
             "product-info__content"
         );
         productItemPrice.innerText = `${Number(
-            order.productList[i].price
-        ).toLocaleString()} 원 x ${order.countList[i]} = ${(
-            Number(order.productList[i].price) * Number(order.countList[i])
+            order.productInfo[i].price
+        ).toLocaleString()} 원 x ${order.productCount[i]} = ${(
+            Number(order.productInfo[i].price) * Number(order.productCount[i])
         ).toLocaleString()} 원`;
-        productItemLink.appendChild(productItemPrice);
+        productItemLink.appendChild(productItemPrice);        
     }
 }
 
 function checkOrderShippingStatus(order) {
-    const shippingStatus = order.shippingStatus;
+    const shippingStatus = order.shoppingStatus;
+    console.log('orderStatus::', shippingStatus)
     if (shippingStatus === "배송준비중") {
         document.getElementById("shipping-ready").style.color = "rgba(0, 0, 0, 0.7)";
         document.getElementById("shipping-ready").style.fontSize = "23px";
-    } else {
+    }else if (shippingStatus === '결제완료'){
+        document.getElementById("pay-finished").style.color = "rgba(0, 0, 0, 0.7)";
+        document.getElementById("pay-finished").style.fontSize = "23px";
+        document.getElementById("shipping-ready").style.color = "rgba(0, 0, 0, 0.3)";
+        document.getElementById("shipping-ready").style.fontSize = "18px";
+    }else {
         const orderEditBtn = document.getElementById(
             "order__options--edit"
         );
@@ -191,9 +220,13 @@ function checkOrderShippingStatus(order) {
         if (shippingStatus === "배송중") {
             document.getElementById("shipping-ongoing").style.color = "rgba(0, 0, 0, 0.7)";
             document.getElementById("shipping-ongoing").style.fontSize = "23px";
+            document.getElementById("shipping-ready").style.color = "rgba(0, 0, 0, 0.3)";
+            document.getElementById("shipping-ready").style.fontSize = "18px";
         } else if (shippingStatus === "배송완료") {
             document.getElementById("shipping-finished").style.color = "rgba(0, 0, 0, 0.7)";
             document.getElementById("shipping-finished").style.fontSize = "23px";
+            document.getElementById("shipping-ready").style.color = "rgba(0, 0, 0, 0.3)";
+            document.getElementById("shipping-ready").style.fontSize = "18px";
         } else if (shippingStatus === "취소완료") {
             document.getElementById(
             "order-detail__content--wrap"
@@ -205,168 +238,106 @@ function checkOrderShippingStatus(order) {
 // 주문 수정 기능
 // 주문 수정 모달 창의 기본 값 채우기
 function fillOrderEditModalInput(order) {
-    document.getElementById(
-        "modal-user__name"
-        ).value = order.receiverName;
-    document.getElementById(
-        "modal-user__phonenumber"
-    ).value = order.receiverPhone;
-    document.getElementById(
-        "modal-user__postcode"
-    ).value = order.zipCode;
-    document.getElementById(
-        "modal-address__input--first"
-    ).value = order.extraAddress;
-    document.getElementById(
-        "modal-address__input--second"
-    ).value = order.extraAddress_2;
+    document.getElementById("modal-user__name").value = order.receiverName;
+    document.getElementById("modal-user__phonenumber").value = order.receiverPhone;
+    document.getElementById("modal-user__postcode").value = order.zipCode;
+    document.getElementById("modal-address__input--first").value = order.extraAddress;
+    document.getElementById("modal-address__input--second").value = order.extraAddress_2;
 }
 
-// 주문 수정 모달 창의 확인 버튼 클릭 시 주문 수정이 이루어짐
-const orderEditSumbitBtn = document.querySelector(".order-edit__submit");
 
-orderEditSumbitBtn.addEventListener("click", (event) => {
-    const recipientName = document.getElementById(
-        "modal-user__name"
-    ).value;
-    const recipientPhoneNumber = document.getElementById(
-        "modal-user__phonenumber"
-    ).value;
-    const shippingPostCode = document.getElementById(
-        "modal-user__postcode"
-    ).value;
-    const shippingStreetAddress = document.getElementById(
-        "modal-address__input--first"
-    ).value;
-    // const shippingExtraAddress = document.getElementById(
-    //     "modal-address__input--second"
-    // ).value;
-
-    const changeData = { receiverName, receiverPhone, zipCode, extraAddress }
-
-    Api.patch(`/api/mypage/order`, orderId, changeData)
-    .then((changeData) => {
-        // 수정된 Order 정보로 새로 그려주기
-        alert("배송 정보가 변경되었습니다.");
-        const orderDetailWrap = document.getElementById("order-detail--wrap");
-        orderDetailWrap.innerHTML = "";
-        orderDetailWrap.innerHTML += renderOrderContent(changeData);
-
-        const productInfo = document.getElementById(
-            "order-detail__product--info"
-        );
-
-        renderOrderProduct(order, productInfo);
-        checkOrderShippingStatus(order);
-
-        //모달창이 닫히는 기능
-        document.getElementsByTagName("body")[0].className = "";
-        document.getElementsByTagName("body")[0].style = "none";
-        document.querySelector("#order-edit__modal").style = "display: none";
-        document.querySelector(".modal-backdrop").remove();
-    })
-    .catch((error) => {
-        alert(error);
-    });
-});
 
 // 주문 삭제 기능
-const orderCancelBtn = document.getElementById(
-    "order__options--cancel"
-);
+// const orderCancelBtn = document.querySelector(".order__options--option");
 
-orderCancelBtn.addEventListener("click", (e) => {
-    if (window.confirm("주문을 취소하시겠습니까?")) {
-        fetch(`/api/orders/${oid}`, {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ shippingStatus: "취소완료" }),
-        })
-        // .then(async (res) => {
-        //     const json = await res.json();
+// orderCancelBtn.addEventListener("click", (e) => {
+//     if (window.confirm("주문을 취소하시겠습니까?")) {
+//         fetch(`/api/orders/${oid}`, {
+//             method: "PUT",
+//             headers: {
+//                 "Content-Type": "application/json",
+//             },
+//             body: JSON.stringify({ shippingStatus: "취소완료" }),
+//         })
+//         // .then(async (res) => {
+//         //     const json = await res.json();
 
-        //     if (res.ok) {
-        //         return json;
-        //     }
+//         //     if (res.ok) {
+//         //         return json;
+//         //     }
 
-        //     return Promise.reject(json);
-        // })
-        .then((order) => {
-            alert("주문 취소가 완료되었습니다.");
+//         //     return Promise.reject(json);
+//         // })
+//         .then((order) => {
+//             alert("주문 취소가 완료되었습니다.");
 
-            const productInfo = document.getElementById(
-                "order-detail__product--info"
-            );
+//             const productInfo = document.getElementById(
+//                 "order-detail__product--info"
+//             );
 
-            productInfo.innerHTML = "";
+//             productInfo.innerHTML = "";
 
-            renderOrderProduct(order, productInfo);
-            checkOrderShippingStatus(order);
-        });
-    }
-});
+//             renderOrderProduct(order, productInfo);
+//             checkOrderShippingStatus(order);
+//         });
+//     }
+// });
 
 // 주소 검색 기능
-const addressSearchBtn = document.querySelector(".modal-address__search");
+// const addressSearchBtn = document.querySelector(".modal-address__search");
 
-function searchAddress(e) {
-    e.preventDefault();
+// function searchAddress(e) {
+//     e.preventDefault();
 
-    new daum.Postcode({
-        oncomplete: function (data) {
-            let addr = "";
-            let extraAddr = "";
+//     new daum.Postcode({
+//         oncomplete: function (data) {
+//             let addr = "";
+//             let extraAddr = "";
 
-            if (data.userSelectedType === "R") {
-                addr = data.roadAddress;
-            } else {
-                addr = data.jibunAddress;
-            }
+//             if (data.userSelectedType === "R") {
+//                 addr = data.roadAddress;
+//             } else {
+//                 addr = data.jibunAddress;
+//             }
 
-            if (data.userSelectedType === "R") {
-                if (data.bname !== "" && /[동|로|가]$/g.test(data.bname)) {
-                    extraAddr += data.bname;
-                }
-                if (data.buildingName !== "" && data.apartment === "Y") {
-                    extraAddr +=
-                    extraAddr !== "" ? ", " + data.buildingName : data.buildingName;
-                }
-                if (extraAddr !== "") {
-                    extraAddr = " (" + extraAddr + ")";
-                }
-            } else {
-            }
+//             if (data.userSelectedType === "R") {
+//                 if (data.bname !== "" && /[동|로|가]$/g.test(data.bname)) {
+//                     extraAddr += data.bname;
+//                 }
+//                 if (data.buildingName !== "" && data.apartment === "Y") {
+//                     extraAddr +=
+//                     extraAddr !== "" ? ", " + data.buildingName : data.buildingName;
+//                 }
+//                 if (extraAddr !== "") {
+//                     extraAddr = " (" + extraAddr + ")";
+//                 }
+//             } else {
+//             }
 
-            const shippingPostCode = document.getElementById(
-                "modal-user__postcode"
-            );
-            const shippingStreetAddress = document.getElementById(
-                "modal-address__input--first"
-            );
-            const shippingExtraAddress = document.getElementById(
-                "modal-address__input--second"
-            );
-            shippingPostCode.value = `${data.zonecode}`;
-            shippingStreetAddress.value = `${addr} ${extraAddr}`;
-            shippingExtraAddress.focus();
-        },
-    }).open();
-}
+//             const shippingPostCode = document.getElementById(
+//                 "modal-user__postcode"
+//             );
+//             const shippingStreetAddress = document.getElementById(
+//                 "modal-address__input--first"
+//             );
+//             const shippingExtraAddress = document.getElementById(
+//                 "modal-address__input--second"
+//             );
+//             shippingPostCode.value = `${data.zonecode}`;
+//             shippingStreetAddress.value = `${addr} ${extraAddr}`;
+//             shippingExtraAddress.focus();
+//         },
+//     }).open();
+// }
 
-addressSearchBtn.addEventListener("click", searchAddress);
+// addressSearchBtn.addEventListener("click", searchAddress);
 
-// 우편번호/도로명주소 클릭 시 주소검색창 OPEN 기능
-const shippingPostCode = document.getElementById(
-    "modal-user__postcode"
-);
-const shippingStreetAddress = document.getElementById(
-    "modal-address__input--first"
-);
+// // 우편번호/도로명주소 클릭 시 주소검색창 OPEN 기능
+// const shippingPostCode = document.getElementById("modal-user__postcode");
+// const shippingStreetAddress = document.getElementById("modal-address__input--first");
 
-shippingPostCode.addEventListener("click", searchAddress);
-shippingStreetAddress.addEventListener("click", searchAddress);
+// shippingPostCode.addEventListener("click", searchAddress);
+// shippingStreetAddress.addEventListener("click", searchAddress);
 
 // 회원탈퇴 기능
 const userDeleteBtn = document.querySelector(".user__delete");

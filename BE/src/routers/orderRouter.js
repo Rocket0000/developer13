@@ -73,12 +73,14 @@ orderRouter.patch(
       const receiverName = req.body.receiverName;
       const zipCode = req.body.zipCode;
       const extraAddress = req.body.extraAddress;
+      const extraAddress_2 = req.body.extraAddress_2;
       const receiverPhone = req.body.receiverPhone;
 
       const toUpdate = {
         ...(receiverName && { receiverName }),
         ...(zipCode && { zipCode }),
         ...(extraAddress && { extraAddress }),
+        ...(extraAddress_2 && { extraAddress_2 }),
         ...(receiverPhone && { receiverPhone }),
       };
 
@@ -163,6 +165,7 @@ orderRouter.post("/cart/order", loginRequired, async (req, res, next) => {
     const totalPrice = req.body.totalPrice;
     const zipCode = req.body.zipCode;
     const extraAddress = req.body.extraAddress;
+    const extraAddress_2 = req.body.extraAddress_2;
     const receiverName = req.body.receiverName;
     const receiverPhone = req.body.receiverPhone;
 
@@ -178,6 +181,7 @@ orderRouter.post("/cart/order", loginRequired, async (req, res, next) => {
       totalPrice,
       zipCode,
       extraAddress,
+      extraAddress_2,
       receiverName,
       receiverPhone,
     });
