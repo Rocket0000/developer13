@@ -1,8 +1,3 @@
-// import { main } from "/public/js/main.js";
-// const { loggedInUser } = await main();
-
-// import { error } from "console";
-
 import * as Api from "/api.js";
 
 import {
@@ -100,17 +95,17 @@ for (let i = 0; i < allBtns.length; i++) {
 
       Api.get(ADMIN_URL, "orders")
         .then((datas) => {
+          console.log(datas)
           const newDatas = datas.map((data) => {
+            const buyerId = data.buyer && data.buyer._id ? data.buyer._id : ""; // buyer 객체와 _id 프로퍼티가 존재하는지 확인하고 null일 경우 빈 문자열로 처리
+            const productNames = data.productInfo && data.productInfo.map((products)=>products.name); //상품이름 리스트
             return {
               _id: data._id,
               orderNumber: data.orderNumber,
-              // name: data.name,
-              buyer: data.buyer._id,
+              buyer: buyerId,
               orderDate: data.createdAt.slice(0, 10),
-              // productInfo: data.productInfo.map((data) => data._id),
-              productInfo: data.productInfo,
+              productInfo: productNames,
               productCount: data.productCount,
-              // total: Number(data.totalAmount).toLocaleString(),
               total: data.totalAmount,
               shoppingStatus: data.shoppingStatus,
             };
@@ -124,7 +119,6 @@ for (let i = 0; i < allBtns.length; i++) {
           mainTag.append(newHtml);
           
           const productIdList = document.querySelectorAll(".product-info");
-          console.log("리스트ㅜ출력:",productIdList)
           for (let count = 0; count < productIdList.length; count++) {
             orderSetProductsNameById(productIdList[count].innerText, count)
           }
@@ -137,7 +131,7 @@ for (let i = 0; i < allBtns.length; i++) {
           orderManagementEdit();
           orderManagementDelete();
         })
-        .catch((err) => alert(err));
+        .catch((err) => console.log(err));
     }
 
     //회원관리 기능구현
@@ -165,11 +159,6 @@ for (let i = 0; i < allBtns.length; i++) {
         .then((newData) => {
           newHtml.appendChild(createUserTable(userAdmin, newData));
           mainTag.append(newHtml);
-          // const userEmail = document.querySelectorAll(".user-email")
-          // const btnShowList = document.querySelectorAll(".btn__show-list");
-          // for (let count = 0; count < btnShowList.length; count++) {
-          //   btnShowList[count].addEventListener("click", userOrderList(userEmail, count))
-          // }
         })
         .then(() => {
           userManagementDelete();
@@ -262,7 +251,6 @@ function orderManagementEdit() {
   for (let count = 0; count < editBtns.length; count++) {
     editBtns[count].addEventListener("click", (e) => {
       e.preventDefault();
-      // console.log(editBtns[count],"-clicked!")
       const btnValue = e.target.text;
       const btnId =
         e.target.parentElement.parentElement.parentElement.parentElement
@@ -296,20 +284,6 @@ function orderManagementDelete() {
   }
 }
 function userOrderList(email, count) {
-  
-    // console.log("조회 버튼 클릭, count:",count)
-    // $('#btn__admin__showList').off()
-    // const userId = dataList[count]._id;
-    // console.log(userId)
-    // showListBtns[count].addEventListener("click", (e) => {
-    //   Api.get(ADMIN_URL,"orders")
-    //     .then((datas) => {
-    //     const orderList = datas.map((data)=> data.buyer._id === userId);
-    //     console.log(orderList)
-    //       // const show-list-modal = document.querySelector("#btn__admin__showList")
-    // })
-    //     .catch((err) => alert(err));
-    // });
 }
 function userManagementDelete() {
   const deleteBtns = document.querySelectorAll(".btn__delete");
@@ -338,11 +312,7 @@ function userManagementDelete() {
 function orderSetProductsNameById(id, count){
   Api.get(PRODUCT_URL, "products")
     .then((productsList)=>{
-      console.log(productsList.products)
     const findData = productsList.products.filter((product)=> product._id === id );
-    console.log(findData)
-    // const productId = document.querySelectorAll(".product-info");
-    // productId[count].innerText = findData[0].name;
     })
     .catch((err)=>alert(err))
 }
@@ -364,9 +334,7 @@ function editSubmitCategory(categoryId) {
         name: newValue.trim()
     })
       .then((data) => {
-        console.log("data:",data)
         alert(`"${beforeValue}"이(가) "${data.category.name}" 으로 변경되었습니다.`);
-        // document.querySelector(".btn__admin__editCategory").click();
         bootstrap.Modal.getInstance("#btn__admin__editCategory").hide();
       })
       .catch((err) => alert(err));

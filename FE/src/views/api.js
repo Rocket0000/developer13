@@ -1,9 +1,9 @@
 // api 로 GET 요청 (/endpoint/params 형태로 요청함)
 async function get(endpoint, params = "") {
   const apiUrl = `${endpoint}/${params}`;
-  console.log(`%cGET 요청: ${apiUrl} `, "color: #a25cd1;");
+  // console.log(`%cGET 요청: ${apiUrl} `, "color: #a25cd1;");
 
-  console.log("params:",params)
+  // console.log("params:",params)
   const res = await fetch(apiUrl, {
     // JWT 토큰을 헤더에 담아 백엔드 서버에 보냄.
     headers: {
