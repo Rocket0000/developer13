@@ -95,7 +95,6 @@ for (let i = 0; i < allBtns.length; i++) {
 
       Api.get(ADMIN_URL, "orders")
         .then((datas) => {
-          console.log(datas)
           const newDatas = datas.map((data) => {
             const buyerId = data.buyer && data.buyer._id ? data.buyer._id : ""; // buyer 객체와 _id 프로퍼티가 존재하는지 확인하고 null일 경우 빈 문자열로 처리
             const productNames = data.productInfo && data.productInfo.map((products)=>products.name); //상품이름 리스트
@@ -136,13 +135,11 @@ for (let i = 0; i < allBtns.length; i++) {
 
     //회원관리 기능구현
     else if (listName === "회원관리") {
-      // console.log("회원관리 in 확인:",listName)
       document.querySelector(".btn-add__category").style =
         "display:none";
       document.querySelector(".btn-add__product").style =
         "display:none";
     
-      
       Api.get(ADMIN_URL,"users")
         .then((datas) => {
           const newDatas = datas.map((data) => {
@@ -202,42 +199,80 @@ for (let i = 0; i < allBtns.length; i++) {
       document.querySelector(".btn-add__product").style =
         "display:inline";
 
-      
-      Api.get(PRODUCT_URL, "products")
-        .then((datas) => {
-          // console.log("get success!")
-          console.log(datas)
-          const newDatas = datas.products.map((data) => {
-            return {
-              _id: data._id,
-              category: data.category,
-              name: data.name,
-              price: Number(data.price).toLocaleString(),
-              stock: Number(data.stock).toLocaleString(),
-            };
-          });
-          // console.log(newDatas)
+      // Api.get(PRODUCT_URL, "products")
+      //   .then((datas) => {
+      //     console.log("prod:", datas)
+      //     const newDatas = datas.products.map((data) => {
+      //       const categoryName = getCategoryNameByID(data.category[0]);
+      //       console.log("카테고리명",categoryName)
+      //       return {
+      //         _id: data._id,
+      //         category: categoryName,
+      //         name: data.name,
+      //         price: Number(data.price).toLocaleString(),
+      //         stock: Number(data.stock).toLocaleString(),
+      //       };
+      //     });
 
-          return newDatas.sort((a, b) => {
-            return new Date(b.date) - new Date(a.date);
-          });
-        })
-        .then((newDatas) => {
-          newHtml.appendChild(createProductTable(productAdmin, newDatas));
-          mainTag.append(newHtml);
-          const categoryId = document.querySelectorAll(".category-info")
-          for (let count = 0; count < categoryId.length; count++) {
-            console.log(categoryId[count].innerHTML)
-            // productSetCategoryNameById(categoryId[count], count)
-          }
-        })
-        .then(() => {
-          productManagementEdit();
-          productManagementDelete();
-          editSubmitProduct();
-          productManagementCreate();
-        })
-        .catch((err) => alert(err));
+      //     return newDatas.sort((a, b) => {
+      //       return new Date(b.date) - new Date(a.date);
+      //     });
+      //   })
+      //   .then((newDatas) => {
+      //     newHtml.appendChild(createProductTable(productAdmin, newDatas));
+      //     mainTag.append(newHtml);
+      //     const categoryId = document.querySelectorAll(".category-info")
+      //     for (let count = 0; count < categoryId.length; count++) {
+      //       console.log(categoryId[count].innerHTML)
+      //       // productSetCategoryNameById(categoryId[count], count)
+      //     }
+      //   })
+      //   .then(() => {
+      //     productManagementEdit();
+      //     productManagementDelete();
+      //     editSubmitProduct();
+      //     productManagementCreate();
+      //   })
+      //   .catch((err) => alert(err));
+      Api.get(PRODUCT_URL, "products")
+  .then((datas) => {
+    console.log("prod:", datas);
+    const promises = datas.products.map((data) => {
+      return getCategoryNameByID(data.category[0]);
+    });
+
+    return Promise.all(promises).then((categoryNames) => {
+      const newDatas = datas.products.map((data, index) => {
+        return {
+          _id: data._id,
+          category: categoryNames[index],
+          name: data.name,
+          price: Number(data.price).toLocaleString(),
+          stock: Number(data.stock).toLocaleString(),
+        };
+      });
+
+      return newDatas.sort((a, b) => {
+        return new Date(b.date) - new Date(a.date);
+      });
+    });
+  })
+  .then((newDatas) => {
+    newHtml.appendChild(createProductTable(productAdmin, newDatas));
+    mainTag.append(newHtml);
+    const categoryId = document.querySelectorAll(".category-info");
+    for (let count = 0; count < categoryId.length; count++) {
+      console.log(categoryId[count].innerHTML);
+    }
+  })
+  .then(() => {
+    productManagementEdit();
+    productManagementDelete();
+    editSubmitProduct();
+    productManagementCreate();
+  })
+  .catch((err) => alert(err));
+
     }
   });
 }
@@ -327,9 +362,7 @@ function orderSetBuyerNameById(id, count){
 }
 //============== 카테고리관련 ===============
 function editSubmitCategory(categoryId) {
-    // console.log("editSubmitCategory - 버튼 클릭")
     const newValue = document.querySelector("#edit-category-name").value;
-    // console.log(newValue)
     Api.patch("/api/admin/category",categoryId, {
         name: newValue.trim()
     })
@@ -345,7 +378,6 @@ function categoryManagementEdit() {
   );
   for (let count = 0; count < editCategoryBtns.length; count++) {
     editCategoryBtns[count].addEventListener("click", (e) => {
-      // console.log("categoryManagementEdit -> 버튼 클릭")
       beforeValue =
         document.querySelectorAll(".current__name")[count].innerText;
       categoryId = e.currentTarget.parentElement.parentElement.id;
@@ -590,4 +622,18 @@ function productSetCategoryNameById(id, count){
     categoryId[count].innerText = findData[0];
   })
   .catch((err)=>alert(err))
+}
+function getCategoryNameByID(categoryID) {
+  console.log("categoryID:", categoryID)
+  return Api.get(CATEGORY_URL, "categories")
+    .then((categories) => {
+      console.log(categories)
+      const category = categories.categories.find((cat) => cat._id.toString() === categoryID.toString());
+      console.log("cate:", category.name)
+      return category ? category.name : "Unknown";
+    })
+    .catch((error) => {
+      console.error("Error retrieving category:", error);
+      return "Unknown";
+    });
 }

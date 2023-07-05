@@ -1,0 +1,50 @@
+@import "../../../public/css/main.css";
+
+* {
+    padding: 0px;
+    margin: 0px;
+    box-sizing: border-box;
+  }
+
+/* 헤더 li */
+.util-link li {
+    margin-right: 20px; 
+}
+
+/* 메인 컨테이너 */
+#main__container {
+    min-height: 100vh;
+}
+.main-contents {
+    width: 1200px;
+    margin: 0 auto;
+}
+/* 관리 탭 */
+.admin-list > ul {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+}
+.admin-list button {
+    width: 100px;
+    height: 50px;
+    border: none;
+    border-radius: 50px;
+    background-color: aliceblue;
+    margin: 10px;
+}
+
+/* 테이블 */
+/* 테이블 헤더 */
+.table-head {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+}
+.table-head li {
+    display: flex;
+    width: 100px;
+    margin: 10px;
+    justify-content: center;
+    align-items: center;
+}
