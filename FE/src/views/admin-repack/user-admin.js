@@ -112,6 +112,7 @@ function getTableRows(className) {
 }
 
 function getTableField(className) {
+  // 주문 탭 테이블
   if (className === "admin_order") {
     return Api.get(ADMIN_URL, "orders")
       .then((res) => {
@@ -152,42 +153,79 @@ function getTableField(className) {
         throw err;
       });
   }
+  // 유저 탭 테이블
   if (className === "admin_user") {
     return Api.get(ADMIN_URL, "users")
-  .then((res) => {
-    const usersData = res.map((data) => ({
-      userId: data._id,
-      userName: data.name,
-      userEmail: data.email,
-    }));
+      .then((res) => {
+        const userData = res.map((data) => ({
+          userId: data._id,
+          userName: data.name,
+          userEmail: data.email,
+        }));
 
-    const ul = document.createElement('ul');
+        const ul = document.createElement('ul');
 
-    usersData.forEach((userData) => {
-      const li = document.createElement('li');
+        userData.forEach((user) => {
+          const li = document.createElement('li');
 
-      const userInfo = ['userName', 'userEmail'].map((key) => {
-        const span = document.createElement('span');
-        span.textContent = userData[key];
-        return span;
+          const userInfo = ['userName', 'userEmail'].map((key) => {
+            const span = document.createElement('span');
+            span.textContent = user[key];
+            return span;
+          });
+
+          const buttons = ['주문내역', '주문삭제'].map((text) => {
+            const button = document.createElement('button');
+            button.textContent = text;
+            return button;
+          });
+
+          li.append(...userInfo, ...buttons);
+          ul.appendChild(li);
+        });
+        return ul;
+      })
+      .catch((err) => {
+        console.log(err);
+        throw err;
       });
+  }
+  // 카테고리 탭 테이블
+  if (className === "admin_category") {
+    return Api.get(CATEGORY_URL, "categories")
+      .then((res) => {
+        const categoryData = [];
+        res.categories.forEach((category) => {
+          const isMainCategory = category.parentCategory ? true : false;
+          console.log(isMainCategory)
+          if (!isMainCategory) {
+            // Main Category인 경우
+            categoryData.push({
+              id: category._id,
+              name: category.name,
+              subCategory: []
+            });
+          } else {
+            // Sub Category인 경우
+            const mainCategoryId = category.parentCategory;
+            const mainCategory = categoryData.find((main) => main.id === mainCategoryId);
+            if (mainCategory) {
+              mainCategory.subCategory.push({
+                id: category._id,
+                name: category.name,
+              });
+            }
+          }
+        })
 
-      const buttons = ['주문내역', '주문삭제'].map((text) => {
-        const button = document.createElement('button');
-        button.textContent = text;
-        return button;
+        const ul = document.createElement('ul');
+
+        return ul;
+      })
+      .catch((err) => {
+        console.log(err);
+        throw err;
       });
-
-      li.append(...userInfo, ...buttons);
-      ul.appendChild(li);
-    });
-    return ul;
-  })
-  .catch((err) => {
-    console.log(err);
-    throw err;
-  });
-
   }
 }
 // --------- API 불러오기
