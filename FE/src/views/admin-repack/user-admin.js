@@ -90,10 +90,12 @@ function handleAdminButtonClick(e) {
 
     // 테이블 헤더를 삽입함
     newTable.appendChild(ul);
-  }
 
-  //테이블 필드 추가
-  const tableFields = getTableField(className);
+    //테이블 필드 추가
+    getTableField(className)
+      .then((tableField) => newTable.appendChild(tableField))
+      .catch((err) => console.log(err));
+  }
 }
 
 //기존 테이블을 지우는 함수
@@ -111,33 +113,81 @@ function getTableRows(className) {
 
 function getTableField(className) {
   if (className === "admin_order") {
-    Api.get(ADMIN_URL, "orders")
+    return Api.get(ADMIN_URL, "orders")
       .then((res) => {
-        console.log(res)
+        const orderData = res.map((data) => ({
+          orderId: data._id,
+          orderDate: data.createdAt,
+          orderNumber: data.orderNumber,
+          productName: data.productInfo && data.productInfo.map((products)=>products.name),
+          buyer: data.buyer && data.buyer._id ? data.buyer._id : "",
+          total: data.totalAmount,
+          shoppingStatus: data.shoppingStatus,
+        }));
+
+        const ul = document.createElement('ul');
+
+        orderData.forEach((order) => {
+        const li = document.createElement('li');
+
+        const orderInfo = ['orderDate', 'orderNumber', 'productName', 'total', 'buyer', 'shoppingStatus'].map((key) => {
+          const span = document.createElement('span');
+          span.textContent = order[key];
+          return span;
+        });
+
+        const buttons = ['주문상세', '주문삭제'].map((text) => {
+          const button = document.createElement('button');
+          button.textContent = text;
+          return button;
+        });
+
+        li.append(...orderInfo, ...buttons);
+        ul.appendChild(li);
+      });
+      return ul;
       })
-      .catch((err) => console.log(err));
+      .catch((err) => {
+        console.log(err);
+        throw err;
+      });
   }
   if (className === "admin_user") {
-    Api.get(ADMIN_URL, "users")
-      .then((res)=>{
-        const usersData = res.map((data) => {
-          return {
-            userId : data._id,
-            userName: data.name,
-            userEmail: data.email,
-          }
-        })
-        const ul = document.createElement('ul');
-        usersData.forEach((userData) => {
-          const userName = document.createElement('li');
-          li.textContent = `${userData.userName} (${userData.userEmail})`;
-          ul.appendChild(li);
-        });
-    
-        // table-wrap에 ul 요소 추가
-        tableWrap.appendChild(ul);
-      })
-      .catch((err) => console.log(err));
+    return Api.get(ADMIN_URL, "users")
+  .then((res) => {
+    const usersData = res.map((data) => ({
+      userId: data._id,
+      userName: data.name,
+      userEmail: data.email,
+    }));
+
+    const ul = document.createElement('ul');
+
+    usersData.forEach((userData) => {
+      const li = document.createElement('li');
+
+      const userInfo = ['userName', 'userEmail'].map((key) => {
+        const span = document.createElement('span');
+        span.textContent = userData[key];
+        return span;
+      });
+
+      const buttons = ['주문내역', '주문삭제'].map((text) => {
+        const button = document.createElement('button');
+        button.textContent = text;
+        return button;
+      });
+
+      li.append(...userInfo, ...buttons);
+      ul.appendChild(li);
+    });
+    return ul;
+  })
+  .catch((err) => {
+    console.log(err);
+    throw err;
+  });
+
   }
 }
 // --------- API 불러오기
