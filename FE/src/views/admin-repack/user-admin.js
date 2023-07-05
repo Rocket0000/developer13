@@ -63,7 +63,7 @@ const tableWrap = document.querySelector('.table-wrap');
 
 function handleAdminButtonClick(e) {
   e.preventDefault();
-  const ButtonClassName = e.target.className;
+  const className = e.target.className;
   const adminButtonText = e.target.textContent;
   // 기존에 생성된 div 요소가 있다면 삭제
   clearTableWrap();
@@ -71,7 +71,7 @@ function handleAdminButtonClick(e) {
   // 새로운 div 요소 생성
   const newTable = document.createElement('div');
   // 버튼과 동일한 클래스명을 넣어줌
-  newTable.className = ButtonClassName;
+  newTable.className = className;
   // table-wrap에 새로운 div 요소 추가
   tableWrap.appendChild(newTable);
 
@@ -91,6 +91,9 @@ function handleAdminButtonClick(e) {
     // 테이블 헤더를 삽입함
     newTable.appendChild(ul);
   }
+
+  //테이블 필드 추가
+  const tableFields = getTableField(className);
 }
 
 //기존 테이블을 지우는 함수
@@ -105,3 +108,42 @@ function clearTableWrap() {
 function getTableRows(className) {
   return ADMIN_ITEMS.find((item) => item.className === className).rows;
 }
+
+function getTableField(className) {
+  if (className === "admin_order") {
+    Api.get(ADMIN_URL, "orders")
+      .then((res) => {
+        console.log(res)
+      })
+      .catch((err) => console.log(err));
+  }
+  if (className === "admin_user") {
+    Api.get(ADMIN_URL, "users")
+      .then((res)=>{
+        const usersData = res.map((data) => {
+          return {
+            userId : data._id,
+            userName: data.name,
+            userEmail: data.email,
+          }
+        })
+        const ul = document.createElement('ul');
+        usersData.forEach((userData) => {
+          const userName = document.createElement('li');
+          li.textContent = `${userData.userName} (${userData.userEmail})`;
+          ul.appendChild(li);
+        });
+    
+        // table-wrap에 ul 요소 추가
+        tableWrap.appendChild(ul);
+      })
+      .catch((err) => console.log(err));
+  }
+}
+// --------- API 불러오기
+const ADMIN_URL = "/api/admin";
+const CATEGORY_URL = "/api/categories";
+const PRODUCT_URL = "/api/products";
+
+//세션 키 저장
+sessionStorage.setItem("key", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NDQ4MTA2YmE1NDhhYjEzZWRmNTM2ZmYiLCJlbWFpbCI6ImFkbWluIiwiaWF0IjoxNjgyNDQ0NDExfQ.yl5S7x9f7R644xvT8NQpCwGt7opU0B7RbHmVRbg7P34")
