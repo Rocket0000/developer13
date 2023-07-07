@@ -17,7 +17,8 @@ const ADMIN_ITEMS = [
     rows: ["이름", "이메일", "주문내역", "회원삭제"]},
   { text: '카테고리관리', className: 'admin_category',
     rows: [
-    "카테고리명",
+    "카테고리(대)",
+    "카테고리(소)",
     "수정",
     "삭제",
   ]},
@@ -197,29 +198,50 @@ function getTableField(className) {
         const categoryData = [];
         res.categories.forEach((category) => {
           const isMainCategory = category.parentCategory ? true : false;
-          console.log(isMainCategory)
           if (!isMainCategory) {
             // Main Category인 경우
             categoryData.push({
-              id: category._id,
-              name: category.name,
-              subCategory: []
+              categoryId: category._id,
+              categoryName: category.name,
+              subCategory: [],
             });
           } else {
             // Sub Category인 경우
             const mainCategoryId = category.parentCategory;
-            const mainCategory = categoryData.find((main) => main.id === mainCategoryId);
+            const mainCategory = categoryData.find((main) => main.categoryId === mainCategoryId);
             if (mainCategory) {
               mainCategory.subCategory.push({
-                id: category._id,
-                name: category.name,
+                categoryId: category._id,
+                categoryName: category.name,
               });
             }
           }
         })
 
         const ul = document.createElement('ul');
+        
+        categoryData.forEach((category) => {
+          const li = document.createElement('li');
 
+          const categoryInfo = ['categoryName', 'subCategory'].map((key) => {
+            const span = document.createElement('span');
+            if (key === 'subCategory') {
+              span.textContent = category['subCategory'].map((subCat) => subCat.categoryName);
+            } else {
+              span.textContent = category[key];
+            }
+            return span;
+          });
+          
+          const buttons = ['수정', '삭제'].map((text) => {
+            const button = document.createElement('button');
+            button.textContent = text;
+            return button;
+          });
+
+          li.append(...categoryInfo, ...buttons);
+          ul.appendChild(li);
+        });
         return ul;
       })
       .catch((err) => {
