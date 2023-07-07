@@ -119,10 +119,10 @@ function getTableField(className) {
       .then((res) => {
         const orderData = res.map((data) => ({
           orderId: data._id,
-          orderDate: data.createdAt,
+          orderDate: data.createdAt.slice(0, 10),
           orderNumber: data.orderNumber,
           productName: data.productInfo && data.productInfo.map((products)=>products.name),
-          buyer: data.buyer && data.buyer._id ? data.buyer._id : "",
+          buyer: data.buyer && data.buyer._id ? data.buyer.name : "",
           total: data.totalAmount,
           shoppingStatus: data.shoppingStatus,
         }));
@@ -219,7 +219,7 @@ function getTableField(className) {
         })
 
         const ul = document.createElement('ul');
-        
+
         categoryData.forEach((category) => {
           const li = document.createElement('li');
 
@@ -240,6 +240,59 @@ function getTableField(className) {
           });
 
           li.append(...categoryInfo, ...buttons);
+          ul.appendChild(li);
+        });
+        return ul;
+      })
+      .catch((err) => {
+        console.log(err);
+        throw err;
+      });
+  }
+  // 상품 탭 테이블
+  if (className === "admin_product") {
+    // 상품 & 카테고리 모두 요청 필요
+    return Promise.all([
+      Api.get(CATEGORY_URL, "categories"),
+      Api.get(PRODUCT_URL, "products")
+    ])
+      .then(([categoryRes, productRes]) => {
+        // 카테고리 정보를 객체 형태로 변환
+        const categoryMap = {};
+        categoryRes.categories.forEach((category) => {
+          categoryMap[category._id] = category.name;
+        });
+
+        // 제품 데이터 구성
+        const productData = productRes.products.map((data) => {
+          const categories = data.category.map((categoryId) => categoryMap[categoryId] || '');
+          return {
+            productId: data._id,
+            productName: data.name,
+            productPrice: data.price,
+            category: categories.join(' > '), // 카테고리명 결합
+            stock: data.stock,
+          };
+        });
+        
+        const ul = document.createElement('ul');
+
+        productData.forEach((product) => {
+          const li = document.createElement('li');
+
+          const productInfo = ['productName', 'category', 'productPrice'].map((key) => {
+            const span = document.createElement('span');
+            span.textContent = product[key];
+            return span;
+          });
+
+          const buttons = ['수정', '삭제'].map((text) => {
+            const button = document.createElement('button');
+            button.textContent = text;
+            return button;
+          });
+
+          li.append(...productInfo, ...buttons);
           ul.appendChild(li);
         });
         return ul;
