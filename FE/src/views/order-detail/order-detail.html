@@ -221,6 +221,7 @@
             const changeData = { receiverName, receiverPhone, zipCode, extraAddress, extraAddress_2}
 
             console.log('확인', JSON.stringify(changeData), orderObjId)
+            
             fetch(`/api/mypage/order/${orderObjId[5]}`,{
                 method: 'PATCH',
                 headers:{
@@ -242,9 +243,7 @@
             })
         }
 
-        function searchAddress(e) {
-            // e.preventDefault();
-
+        const searchAddress = () => {
             new daum.Postcode({
                 oncomplete: function (data) {
                     let addr = "";
@@ -284,8 +283,7 @@
                     shippingExtraAddress.focus();
                 },
             }).open();
-}
-
+        }
     </script>
 </body>
 </html>

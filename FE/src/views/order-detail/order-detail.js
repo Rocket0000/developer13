@@ -4,6 +4,22 @@ import * as Api from "/api.js";
 const orderId = window.location.href.split('/');
 
 
+function parseJwt (token) {
+    var base64Url = token.split('.')[1];
+    var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    var jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+    
+    return JSON.parse(jsonPayload);
+};
+
+const token = sessionStorage.getItem('token')
+const userId = parseJwt(token).userId
+
+console.log('user::::', userId)
+
+
 Api.get('/api/mypage/orders', `${orderId[5]}`)
     .then((order) => {
         const orderDetailWrap = document.getElementById("order-detail--wrap");
@@ -138,6 +154,27 @@ function renderOrderContent(order) {
             id="order__options--cancel"
             type="button"
             class="order__options--option btn btn-danger"
+            onclick="
+                const orderIdNum = window.location.href.split('/'); 
+                console.log('/api/mypage/orders/'+orderIdNum[5])
+
+                if(window.confirm('주문을 취소하시겠습니까?')){
+                    fetch('/api/mypage/orders/'+orderIdNum[5],{
+                        method: 'DELETE',
+                        headers: {
+                            Authorization: 'Bearer ' + sessionStorage.getItem('token')
+                        },
+                        body: orderIdNum[5]
+                    }).then((res) => {
+                        if(res.status === 201){
+                            alert('주문이 취소되었습니다')
+                        }
+                        location.href = '/mypage/orders'
+                    }).catch((err) => {
+                        console.log('err::::', err)
+                    })
+                }
+            "
         >
             주문 취소
         </button>
@@ -245,99 +282,7 @@ function fillOrderEditModalInput(order) {
     document.getElementById("modal-address__input--second").value = order.extraAddress_2;
 }
 
-
-
-// 주문 삭제 기능
-// const orderCancelBtn = document.querySelector(".order__options--option");
-
-// orderCancelBtn.addEventListener("click", (e) => {
-//     if (window.confirm("주문을 취소하시겠습니까?")) {
-//         fetch(`/api/orders/${oid}`, {
-//             method: "PUT",
-//             headers: {
-//                 "Content-Type": "application/json",
-//             },
-//             body: JSON.stringify({ shippingStatus: "취소완료" }),
-//         })
-//         // .then(async (res) => {
-//         //     const json = await res.json();
-
-//         //     if (res.ok) {
-//         //         return json;
-//         //     }
-
-//         //     return Promise.reject(json);
-//         // })
-//         .then((order) => {
-//             alert("주문 취소가 완료되었습니다.");
-
-//             const productInfo = document.getElementById(
-//                 "order-detail__product--info"
-//             );
-
-//             productInfo.innerHTML = "";
-
-//             renderOrderProduct(order, productInfo);
-//             checkOrderShippingStatus(order);
-//         });
-//     }
-// });
-
-// 주소 검색 기능
-// const addressSearchBtn = document.querySelector(".modal-address__search");
-
-// function searchAddress(e) {
-//     e.preventDefault();
-
-//     new daum.Postcode({
-//         oncomplete: function (data) {
-//             let addr = "";
-//             let extraAddr = "";
-
-//             if (data.userSelectedType === "R") {
-//                 addr = data.roadAddress;
-//             } else {
-//                 addr = data.jibunAddress;
-//             }
-
-//             if (data.userSelectedType === "R") {
-//                 if (data.bname !== "" && /[동|로|가]$/g.test(data.bname)) {
-//                     extraAddr += data.bname;
-//                 }
-//                 if (data.buildingName !== "" && data.apartment === "Y") {
-//                     extraAddr +=
-//                     extraAddr !== "" ? ", " + data.buildingName : data.buildingName;
-//                 }
-//                 if (extraAddr !== "") {
-//                     extraAddr = " (" + extraAddr + ")";
-//                 }
-//             } else {
-//             }
-
-//             const shippingPostCode = document.getElementById(
-//                 "modal-user__postcode"
-//             );
-//             const shippingStreetAddress = document.getElementById(
-//                 "modal-address__input--first"
-//             );
-//             const shippingExtraAddress = document.getElementById(
-//                 "modal-address__input--second"
-//             );
-//             shippingPostCode.value = `${data.zonecode}`;
-//             shippingStreetAddress.value = `${addr} ${extraAddr}`;
-//             shippingExtraAddress.focus();
-//         },
-//     }).open();
-// }
-
-// addressSearchBtn.addEventListener("click", searchAddress);
-
-// // 우편번호/도로명주소 클릭 시 주소검색창 OPEN 기능
-// const shippingPostCode = document.getElementById("modal-user__postcode");
-// const shippingStreetAddress = document.getElementById("modal-address__input--first");
-
-// shippingPostCode.addEventListener("click", searchAddress);
-// shippingStreetAddress.addEventListener("click", searchAddress);
+sessionStorage.getItem('token')
 
 // 회원탈퇴 기능
 const userDeleteBtn = document.querySelector(".user__delete");

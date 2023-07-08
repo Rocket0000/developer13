@@ -36,7 +36,7 @@ export class OrderModel {
   }
 
   async deleteOrder(orderId){
-    const deleteOrder = await Order.findOneAndRemove({_id: orderId})
+    const deleteOrder = await Order.findOneAndRemove({_id:orderId})
 
     return deleteOrder
   }

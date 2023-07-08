@@ -198,8 +198,7 @@ orderRouter.delete(
   loginRequired,
   async (req, res, next) => {
     try {
-      await orderService.deleteOrder(req.params);
-
+      await orderService.deleteOrder(req.params.orderId);
       res.status(201).send();
     } catch (error) {
       next(error);
