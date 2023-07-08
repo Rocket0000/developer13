@@ -49,3 +49,22 @@
     justify-content: center;
     align-items: center;
 }
+/* 테이블 바디 */
+.table-body li {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    white-space: pre-line;
+    word-wrap: break-word;
+}
+.table-body li > span {
+    width: 100px;
+    margin: 10px;
+}
+.table-body li > button {
+    width: 100px;
+    margin: 10px;
+    border: none;
+    padding: 10px;
+    border-radius: 10px;
+}

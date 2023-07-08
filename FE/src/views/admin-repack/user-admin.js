@@ -146,6 +146,7 @@ function getTableField(className) {
 
         li.append(...orderInfo, ...buttons);
         ul.appendChild(li);
+        ul.className = "table-body";
       });
       return ul;
       })
@@ -183,6 +184,7 @@ function getTableField(className) {
 
           li.append(...userInfo, ...buttons);
           ul.appendChild(li);
+          ul.className = "table-body";
         });
         return ul;
       })
@@ -241,6 +243,7 @@ function getTableField(className) {
 
           li.append(...categoryInfo, ...buttons);
           ul.appendChild(li);
+          ul.className = "table-body";
         });
         return ul;
       })
@@ -294,6 +297,7 @@ function getTableField(className) {
 
           li.append(...productInfo, ...buttons);
           ul.appendChild(li);
+          ul.className = "table-body";
         });
         return ul;
       })
