@@ -5,12 +5,12 @@ const itemCount = document.createElement("p");
 itemCount.classList.add("item-count");
 itemlist.insertAdjacentElement("beforebegin", itemCount);
 
-const productUrl = 'api/product/category';
+const productUrl = "/api/product/category";
 const params = new URLSearchParams(location.search);
 const category = params.get("category");
 
-Api.get(productUrl,`${category}`)
-  .then(productList => { 
+Api.get(productUrl, `${category}`)
+  .then((productList) => {
     console.log(productUrl);
     if (productList.products.length === 0) {
       const message = document.createElement("p");
@@ -19,7 +19,7 @@ Api.get(productUrl,`${category}`)
       message.style.textAlign = "center";
       itemlist.insertAdjacentElement("afterend", message);
     } else {
-      productList.products.forEach(product => {
+      productList.products.forEach((product) => {
         const item = document.createElement("div");
         item.classList.add("item");
         item.innerHTML = `
@@ -36,20 +36,22 @@ Api.get(productUrl,`${category}`)
     itemCount.textContent = `전체 : ${productList.products.length}개`;
 
     const items = document.querySelectorAll(".item a");
-    items.forEach(item => {
-      item.addEventListener("click", function(event) {
+    items.forEach((item) => {
+      item.addEventListener("click", function (event) {
         event.preventDefault();
         const id = this.dataset.id;
         localStorage.setItem("productId", id);
-        location.href = `../product-detail/product-detail.html?id=${encodeURIComponent(id)}`;
+        location.href = `../product-detail/product-detail.html?id=${encodeURIComponent(
+          id
+        )}`;
       });
     });
   })
-  .catch(error => {
+  .catch((error) => {
     console.error("에러 발생:", error);
   });
 
- /*
+/*
 
 import * as Api from "../api.js";
 
