@@ -221,9 +221,27 @@ function getTableField(className) {
             return span;
           });
 
-          const buttons = ['주문내역', '회원삭제'].map((text) => {
+          const buttons = ['주문상세', '회원삭제'].map((text, index) => {
             const button = document.createElement('button');
             button.textContent = text;
+        
+            // 회원삭제 버튼 클릭 이벤트 핸들러
+            if (index === 1) { // 회원삭제 버튼
+              // button.addEventListener('click', () => {
+                // const orderId = order.orderId;
+                // API 호출 - 주문 삭제
+                // api.delete(ADMIN_URL, `orders/${orderId}`)
+                  // .then(() => {
+                    // 삭제에 성공한 경우 해당 주문을 화면에서 제거하거나 업데이트하는 등의 동작을 수행할 수 있습니다.
+                    // 예를 들면, ul.removeChild(li); 와 같은 방법으로 삭제된 주문을 리스트에서 제거할 수 있습니다.
+                  // })
+                  // .catch((err) => {
+                    // console.log(err);
+                    // 주문 삭제에 실패한 경우 오류 처리를 수행합니다.
+                  // });
+              // });
+            }
+        
             return button;
           });
 
@@ -286,10 +304,30 @@ function getTableField(className) {
             }
             return span;
           });
-          
-          const buttons = ['수정', '삭제'].map((text) => {
+
+          const buttons = ['수정', '삭제'].map((text, index) => {
             const button = document.createElement('button');
             button.textContent = text;
+        
+            // 삭제 버튼 클릭 이벤트 핸들러
+            if (index === 1) { // 주문삭제 버튼
+              button.addEventListener('click', () => {
+                const categoryId = category.categoryId;
+                
+                // API 호출 - 카테고리 삭제
+                Api.delete(ADMIN_URL, `category/${categoryId}`, category)
+                  .then((res) => {
+                    // 삭제에 성공한 경우 해당 주문을 화면에서 제거하거나 업데이트하는 등의 동작을 수행할 수 있습니다.
+                    // 예를 들면, ul.removeChild(li); 와 같은 방법으로 삭제된 주문을 리스트에서 제거할 수 있습니다.
+                    console.log(res)
+                  })
+                  .catch((err) => {
+                    console.log(err);
+                    // 주문 삭제에 실패한 경우 오류 처리를 수행합니다.
+                  });
+              });
+            }
+        
             return button;
           });
 
@@ -309,7 +347,7 @@ function getTableField(className) {
     //추가 버튼 display
     addCategoryButton.style.display = "none";
     addProductButton.style.display = "block";
-    addProductButton.addEventListener('click', function() {
+    addProductButton.addEventListener('click', () => {
       openModal("product");
     });
 
@@ -319,6 +357,7 @@ function getTableField(className) {
       Api.get(PRODUCT_URL, "products")
     ])
       .then(([categoryRes, productRes]) => {
+        console.log("상품정보:", productRes)
         // 카테고리 정보를 객체 형태로 변환
         const categoryMap = {};
         categoryRes.categories.forEach((category) => {
@@ -436,8 +475,86 @@ function openModal(division) {
     
     // 모달 내용 업데이트
     modalContent.appendChild(clonedModalContent);
+  } else if (division === "product") {
+     // 모달 헤더
+  modalHeader.textContent = '상품 추가';
+
+ // 상품명 입력 요소 생성
+ const productNameInputLabel = document.createElement('label');
+ productNameInputLabel.textContent = "상품명";
+
+ const productNameInput = document.createElement('input');
+ productNameInput.type = "text";
+ productNameInput.placeholder = "상품명";
+
+ // 카테고리 입력 요소 생성
+ const categoryInputLabel = document.createElement('label');
+ categoryInputLabel.textContent = "카테고리";
+
+ const categoryInput = document.createElement('input');
+ categoryInput.type = "text";
+ categoryInput.placeholder = "카테고리";
+
+ // 가격 입력 요소 생성
+ const priceInputLabel = document.createElement('label');
+ priceInputLabel.textContent = "가격";
+
+ const priceInput = document.createElement('input');
+ priceInput.type = "number";
+ priceInput.placeholder = "가격";
+
+ // 재고 입력 요소 생성
+ const stockInputLabel = document.createElement('label');
+ stockInputLabel.textContent = "재고";
+
+ const stockInput = document.createElement('input');
+ stockInput.type = "number";
+ stockInput.placeholder = "재고";
+
+ // 저장 버튼 생성
+ const saveButton = document.createElement('button');
+ saveButton.textContent = "저장";
+ // 저장 버튼 클릭 시 상품 추가 로직을 구현할 수 있습니다.
+ saveButton.addEventListener('click', function() {
+   const productName = productNameInput.value;
+   const category = categoryInput.value;
+   const price = priceInput.value;
+   const stock = stockInput.value;
+
+   // 상품명, 카테고리, 가격, 재고 값 활용 예시
+   console.log('상품명:', productName);
+   console.log('카테고리:', category);
+   console.log('가격:', price);
+   console.log('재고:', stock);
+
+   // 상품 추가 로직 구현
+   createProduct(productName, category, price, stock);
+
+   // 모달 닫기
+   modal.style.display = "none";
+ });
+
+// "닫기" 버튼 생성
+const closeButton = document.createElement('button');
+closeButton.className = 'close';
+closeButton.innerHTML = '&times;';
+closeButton.addEventListener('click', function() {
+  modal.style.display = 'none';
+});
+
+ // 모달 내용에 상품 추가를 위한 요소들을 추가합니다.
+ modalContent.appendChild(closeButton);
+ modalContent.appendChild(modalHeader);
+ modalContent.appendChild(productNameInputLabel);
+ modalContent.appendChild(productNameInput);
+ modalContent.appendChild(categoryInputLabel);
+ modalContent.appendChild(categoryInput);
+ modalContent.appendChild(priceInputLabel);
+ modalContent.appendChild(priceInput);
+ modalContent.appendChild(stockInputLabel);
+ modalContent.appendChild(stockInput);
+ modalContent.appendChild(saveButton);
   }
-  
 }
 
 
@@ -462,24 +579,67 @@ window.addEventListener('click', function(event) {
 // post API
 // 카테고리 생성 함수
 function createCategory(category, subCategories) {
-  // 카테고리 데이터 생성
-  const categoryData = {
-    category: category,
-    subCategories: subCategories
+  // 카테고리(대) 생성 요청
+  const parentCategoryData = {
+    name: category
   };
 
-   // 카테고리 생성 API 요청
-   Api.post("/api/admin/category", categoryData)
-    .then(response => response.json())
+  Api.post("/api/admin/category", parentCategoryData)
+  .then(parentCategory => {
+    console.log('카테고리(대) 생성 성공:', parentCategory);
+
+    // 각 카테고리(소) 생성 요청
+    const childCategoryPromises = subCategories.map(subCategory => {
+      const childCategoryData = {
+        name: subCategory,
+        parentCategory: parentCategory._id
+      };
+      return Api.post("/api/admin/category", childCategoryData);
+    });
+
+    // Promise.all을 사용하여 모든 카테고리(소) 생성 요청이 완료되면 처리 작업 수행
+     Promise.all(childCategoryPromises)
+     .then(responses => {
+       const createdCategories = responses.map(response => response.category);
+       console.log('카테고리(소) 생성 성공:', createdCategories);
+       // 추가로 필요한 처리 작업 수행
+     })
+     .catch(error => {
+       console.error('카테고리(소) 생성 실패:', error);
+       // 에러 처리 작업 수행
+     });
+  })
+  .catch(error => {
+    console.error('카테고리(대) 생성 실패:', error);
+    // 에러 처리 작업 수행
+  });
+}
+
+// 상품 생성 함수
+function createProduct(productName, category, price, stock) {
+  console.log("gkantsdfl")
+  // 상품 데이터 생성
+  const productData = {
+    name: productName,
+    price: price,
+    category: [category, ""],
+    stock: stock.toString(),
+    bigImageURL: "/Apple Watch Series 3.png",
+    smallImageURL: "/Apple Watch Series 3.png",
+    color: ["one color"],
+    longContent: "ㅇㅋ",
+    shortContent: "ㅇㅋㅋ",
+  };
+
+   // 상품 생성 API 요청
+   Api.post("/api/admin/product", productData)
+    // .then(res => res.json())
     .then(data => {
-      console.log('카테고리 생성 성공:', data.category);
+      console.log('상품 생성 성공:', data.products);
       // 추가로 필요한 처리 작업 수행
     })
     .catch(error => {
-      console.error('카테고리 생성 실패:', error);
+      console.error('상품 생성 실패:', error);
       // 에러 처리 작업 수행
     });
 }
-
-//세션 키 저장
-sessionStorage.setItem("key", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NDQ4MTA2YmE1NDhhYjEzZWRmNTM2ZmYiLCJlbWFpbCI6ImFkbWluIiwiaWF0IjoxNjgyNDQ0NDExfQ.yl5S7x9f7R644xvT8NQpCwGt7opU0B7RbHmVRbg7P34")
