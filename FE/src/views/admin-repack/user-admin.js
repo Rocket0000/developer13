@@ -1,4 +1,8 @@
 import * as Api from "/api.js";
+// --------- API 불러오기
+const ADMIN_URL = "/api/admin";
+const CATEGORY_URL = "/api/categories";
+const PRODUCT_URL = "/api/products";
 
 // ------------- 관리 탭 생성
 const adminList = document.querySelector('.admin-list');
@@ -11,6 +15,7 @@ const ADMIN_ITEMS = [
     "총(원)",
     "주문자",
     "주문상태",
+    "주문상세",
     "주문취소",
   ]},
   { text: '회원관리', className: 'admin_user',
@@ -58,6 +63,20 @@ adminButtons.forEach((button) => {
 });
 
 adminList.appendChild(ul);
+
+//--------추가 버튼
+// "상품 추가" 버튼 생성
+const addProductButton = document.createElement('button');
+addProductButton.className = "add-button";
+addProductButton.textContent = "상품 추가";
+
+// "카테고리 추가" 버튼 생성
+const addCategoryButton = document.createElement('button');
+addCategoryButton.className = "add-button";
+addCategoryButton.textContent = "카테고리 추가";
+
+adminList.appendChild(addProductButton);
+adminList.appendChild(addCategoryButton);
 
 // ------------- 테이블 생성 - 관리 탭에 따라 다르게 생성
 const tableWrap = document.querySelector('.table-wrap');
@@ -115,6 +134,10 @@ function getTableRows(className) {
 function getTableField(className) {
   // 주문 탭 테이블
   if (className === "admin_order") {
+     //추가 버튼 display: none;
+     addCategoryButton.style.display = "none";
+     addProductButton.style.display = "none";
+
     return Api.get(ADMIN_URL, "orders")
       .then((res) => {
         const orderData = res.map((data) => ({
@@ -138,9 +161,27 @@ function getTableField(className) {
           return span;
         });
 
-        const buttons = ['주문상세', '주문삭제'].map((text) => {
+        const buttons = ['주문상세', '주문삭제'].map((text, index) => {
           const button = document.createElement('button');
           button.textContent = text;
+      
+          // 주문삭제 버튼 클릭 이벤트 핸들러
+          if (index === 1) { // 주문삭제 버튼
+            button.addEventListener('click', () => {
+              const orderId = order.orderId;
+              // API 호출 - 주문 삭제
+              api.delete(ADMIN_URL, `orders/${orderId}`)
+                .then(() => {
+                  // 삭제에 성공한 경우 해당 주문을 화면에서 제거하거나 업데이트하는 등의 동작을 수행할 수 있습니다.
+                  // 예를 들면, ul.removeChild(li); 와 같은 방법으로 삭제된 주문을 리스트에서 제거할 수 있습니다.
+                })
+                .catch((err) => {
+                  console.log(err);
+                  // 주문 삭제에 실패한 경우 오류 처리를 수행합니다.
+                });
+            });
+          }
+      
           return button;
         });
 
@@ -157,6 +198,10 @@ function getTableField(className) {
   }
   // 유저 탭 테이블
   if (className === "admin_user") {
+    //추가 버튼 display: none;
+    addCategoryButton.style.display = "none";
+    addProductButton.style.display = "none";
+
     return Api.get(ADMIN_URL, "users")
       .then((res) => {
         const userData = res.map((data) => ({
@@ -176,12 +221,13 @@ function getTableField(className) {
             return span;
           });
 
-          const buttons = ['주문내역', '주문삭제'].map((text) => {
+          const buttons = ['주문내역', '회원삭제'].map((text) => {
             const button = document.createElement('button');
             button.textContent = text;
             return button;
           });
 
+          
           li.append(...userInfo, ...buttons);
           ul.appendChild(li);
           ul.className = "table-body";
@@ -195,8 +241,14 @@ function getTableField(className) {
   }
   // 카테고리 탭 테이블
   if (className === "admin_category") {
+    //추가 버튼 display
+    addCategoryButton.style.display = "block";
+    addProductButton.style.display = "none";
+    addCategoryButton.addEventListener('click', () => openModal("category"));
+
     return Api.get(CATEGORY_URL, "categories")
       .then((res) => {
+        console.log("category 출력", res)
         const categoryData = [];
         res.categories.forEach((category) => {
           const isMainCategory = category.parentCategory ? true : false;
@@ -254,6 +306,13 @@ function getTableField(className) {
   }
   // 상품 탭 테이블
   if (className === "admin_product") {
+    //추가 버튼 display
+    addCategoryButton.style.display = "none";
+    addProductButton.style.display = "block";
+    addProductButton.addEventListener('click', function() {
+      openModal("product");
+    });
+
     // 상품 & 카테고리 모두 요청 필요
     return Promise.all([
       Api.get(CATEGORY_URL, "categories"),
@@ -283,7 +342,7 @@ function getTableField(className) {
         productData.forEach((product) => {
           const li = document.createElement('li');
 
-          const productInfo = ['productName', 'category', 'productPrice'].map((key) => {
+          const productInfo = ['productName', 'category', 'productPrice', 'stock'].map((key) => {
             const span = document.createElement('span');
             span.textContent = product[key];
             return span;
@@ -307,10 +366,120 @@ function getTableField(className) {
       });
   }
 }
-// --------- API 불러오기
-const ADMIN_URL = "/api/admin";
-const CATEGORY_URL = "/api/categories";
-const PRODUCT_URL = "/api/products";
+
+// --------- 모달 관련 함수
+
+// 모달 열기 함수
+function openModal(division) {
+  const modal = document.getElementById('myModal');
+  const modalContent = document.getElementById('modal-content');
+  modal.style.display = "block";
+  // 모달 내용 초기화
+  modalContent.innerHTML = '';
+  // 모달 헤더
+  const modalHeader = document.createElement('p');
+  modalHeader.id = 'modal-header';
+  
+  if (division === "category") {
+    // 기존 모달 창 내용 복제
+    const clonedModalContent = modalContent.cloneNode(true);
+    
+    // 카테고리 추가를 위한 요소 생성
+    const categoryInputLabel = document.createElement('label');
+    categoryInputLabel.textContent = "카테고리(대)";
+
+    const categoryInput = document.createElement('input');
+    categoryInput.type = "text";
+    categoryInput.placeholder = "카테고리(대)";
+
+    const subCategoryInputLabel = document.createElement('label');
+    subCategoryInputLabel.textContent = "카테고리(소)";
+
+    const subCategoryInput = document.createElement('input');
+    subCategoryInput.type = "text";
+    subCategoryInput.placeholder = "카테고리(소)";
+    
+    // saveButton 생성
+    const saveButton = document.createElement('button');
+    saveButton.textContent = "저장";
+    // 저장 버튼 클릭 시 카테고리 추가 로직을 구현할 수 있습니다.
+    saveButton.addEventListener('click', function() {
+      const category = categoryInput.value;
+      const subCategories = subCategoryInput.value.split(',');
+      
+      // 카테고리(대)와 카테고리(소) 값 활용 예시
+      console.log('카테고리(대):', category);
+      console.log('카테고리(소):', subCategories);
+      // 카테고리 생성 로직 구현
+      createCategory(category, subCategories);
+
+      //모달 닫기
+      modal.style.display = "none";
+    });
+    
+     // "닫기" 버튼 생성
+     const closeButton = document.createElement('button');
+     closeButton.className = 'close';
+     closeButton.innerHTML = '&times;';
+     closeButton.addEventListener('click', function() {
+       modal.style.display = 'none';
+     });
+
+    // 모달 내용에 카테고리 추가를 위한 요소들을 추가합니다.
+
+    clonedModalContent.appendChild(closeButton);
+    clonedModalContent.appendChild(categoryInputLabel);
+    clonedModalContent.appendChild(categoryInput);
+    clonedModalContent.appendChild(subCategoryInputLabel);
+    clonedModalContent.appendChild(subCategoryInput);
+    clonedModalContent.appendChild(saveButton);
+    
+    // 모달 내용 업데이트
+    modalContent.appendChild(clonedModalContent);
+  }
+  
+}
+
+
+// 모달 닫기 함수
+function closeModal() {
+  const modal = document.getElementById('myModal');
+  modal.style.display = "none";
+}
+
+// "닫기" 버튼 클릭 시 모달 닫기
+const closeButton = document.getElementById('closeButton');
+closeButton.addEventListener('click', closeModal);
+
+// 모달 창 외부 클릭 시 모달 닫기
+window.addEventListener('click', function(event) {
+  const modal = document.getElementById('myModal');
+  if (event.target == modal) {
+    modal.style.display = "none";
+  }
+});
+
+// post API
+// 카테고리 생성 함수
+function createCategory(category, subCategories) {
+  // 카테고리 데이터 생성
+  const categoryData = {
+    category: category,
+    subCategories: subCategories
+  };
+
+   // 카테고리 생성 API 요청
+   Api.post("/api/admin/category", categoryData)
+    .then(response => response.json())
+    .then(data => {
+      console.log('카테고리 생성 성공:', data.category);
+      // 추가로 필요한 처리 작업 수행
+    })
+    .catch(error => {
+      console.error('카테고리 생성 실패:', error);
+      // 에러 처리 작업 수행
+    });
+}
 
 //세션 키 저장
 sessionStorage.setItem("key", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NDQ4MTA2YmE1NDhhYjEzZWRmNTM2ZmYiLCJlbWFpbCI6ImFkbWluIiwiaWF0IjoxNjgyNDQ0NDExfQ.yl5S7x9f7R644xvT8NQpCwGt7opU0B7RbHmVRbg7P34")
